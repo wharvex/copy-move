@@ -6,3 +6,5 @@ int is_reg_file(char *path, struct stat *sb);
 int is_dir(char *path, struct stat *sb);
 int get_inode_num(char *path, struct stat *sb);
 int file_exists(char *path);
+void move_file(char *src, char *dst);
+void copy_file(char *src, char *dst);
