@@ -37,24 +37,66 @@ int get_inode_num(char *path, struct stat *sb) {
   return 0;
 }
 
-void move_file(char *src, char *dst) {
-  if (link(src, dst) < 0) {
-    fprintf(stdout, "Can't link to destination %s\n", dst);
-    perror("link");
-  }
-}
-
 void copy_file(char *src, char *dst) {
+  char buf[BUFSIZ];
+  ssize_t bytes_read, bytes_written;
+
+  // Check if destination exists. If so, prompt user for overwrite confirmation
+
+  if (file_exists(dst)) {
+    char yn;
+    printf("Destination exists. Overwrite? (y/n): ");
+    fflush(stdout);
+    while (yn != 'y') {
+      scanf(" %c", &yn);
+      if (yn == 'n') {
+        fprintf(stderr, "Exiting without copying or moving.\n");
+        exit(EXIT_FAILURE);
+      } else if (yn != 'y') {
+        printf("Please enter 'y' or 'n': ");
+        fflush(stdout);
+      }
+    }
+  }
+
+  // Open the files and check for errors
+
   int src_fd = open(src, O_RDONLY);
   int dst_fd = open(dst, O_WRONLY | O_CREAT | O_TRUNC, 0644);
   if (src_fd < 0 || dst_fd < 0) {
     perror("open");
     exit(EXIT_FAILURE);
   }
-  char buf[BUFSIZ];
-  if (read(src_fd, buf, BUFSIZ) == -1) {
+
+  // Copy the file
+
+  while ((bytes_read = read(src_fd, buf, BUFSIZ)) > 0)
+    bytes_written = write(dst_fd, buf, bytes_read);
+
+  // Check for errors and close the files
+
+  if (bytes_read == -1) {
     perror("read");
     exit(EXIT_FAILURE);
   }
-  char c;
+  if (bytes_written == -1) {
+    perror("write");
+    exit(EXIT_FAILURE);
+  }
+  close(src_fd);
+  close(dst_fd);
+  printf("Successfully copied.\n");
+}
+
+void move_file(char *src, char *dst) {
+  if (link(src, dst) < 0) {
+    fprintf(stderr, "Can't link to destination %s. Attempting copy...\n", dst);
+    perror("link");
+    copy_file(src, dst);
+  }
+  if (unlink(src) < 0) {
+    perror("unlink");
+    exit(EXIT_FAILURE);
+  }
+  printf("Successfully moved.\n");
 }

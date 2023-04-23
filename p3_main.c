@@ -103,8 +103,15 @@ int main(int argc, char *argv[]) {
                     "Exiting without copying or moving.\n");
     return EXIT_FAILURE;
   }
-  if (!called_as_copy(argv[0])) {
+  if (called_as_copy(argv[0])) {
+    // If argc < 4, then after the error-checks above, the destination will
+    // either be a file or not exist
     if (argc < 4) {
+      copy_file(argv[1], argv[2]);
+    }
+  } else {
+    if (argc < 4) {
+      move_file(argv[1], argv[2]);
     }
   }
   return EXIT_SUCCESS;
