@@ -1,3 +1,11 @@
+/**
+ * ICSI333. System Fundamentals, Spring 2023, TA: Kazi Kibria
+ * Timothy Gudlewski
+ * 000761668
+ *
+ * This program moves or copies files to a directory or block device.
+ * It can be called as "move" or "copy."
+ */
 #include "p3_lib.h"
 #include <libgen.h>
 #include <stdio.h>
@@ -18,30 +26,30 @@ int main(int argc, char *argv[]) {
   }
   struct stat sb;
   // When calling as copy or move with more than one source, the destination
-  // must be a directory
-  if (argc > 3 && !is_dir(argv[argc - 1], &sb)) {
-    fprintf(stderr, "ERROR: Destination must be a directory if >1 "
-                    "source.\nExiting without copying or moving.\n");
+  // must be a directory or block device (e.g. external storage)
+  if (argc > 3 && !is_dir(argv[argc - 1], &sb) &&
+      !is_blk_dev(argv[argc - 1], &sb)) {
+    fprintf(stderr,
+            "ERROR: Destination must be a directory or block device if there "
+            "is more than one source.\nExiting without copying or moving.\n");
     return EXIT_FAILURE;
   }
   // When calling as copy or move with any number of sources, the destination
-  // must be a file or directory or not exist
+  // must be a file or directory or block device or not exist
   if (!is_dir(argv[argc - 1], &sb) && !is_reg_file(argv[argc - 1], &sb) &&
-      file_exists(argv[argc - 1])) {
-    fprintf(
-        stderr,
-        "ERROR: Destination must be a file/directory or not exist.\nExiting "
-        "without copying or moving.\n");
+      !is_blk_dev(argv[argc - 1], &sb) && file_exists(argv[argc - 1])) {
+    fprintf(stderr,
+            "ERROR: Destination must be a file or directory or block device or "
+            "not exist.\nExiting without copying or moving.\n");
     return EXIT_FAILURE;
   }
-  // Make arg_types string array to identify source(s) and destination
+  /* arg_types string array to identify source(s) and destination */
   char arg_types[argc][256];
   strcpy(arg_types[argc - 1], "destination");
   for (int i = 1; i < argc - 1; i++) {
     sprintf(arg_types[i], "source%d", i);
   }
-  // Make valid_sources int array to remember which sources exist and are
-  // files/directories
+  /* valid_sources int array to remember which sources exist and are files */
   int valid_sources[argc];
   valid_sources[argc - 1] = 0;
   for (int i = 1; i < argc - 1; i++) {
@@ -62,12 +70,11 @@ int main(int argc, char *argv[]) {
               arg_types[i]);
       continue;
     }
-    // If we're on a source argv and it isn't a file or directory, print error
+    // If we're on a source argv and it isn't a regular file, print error
     // message and move to the next argv
-    if (i < argc - 1 && !is_dir(argv[i], &sb) && !is_reg_file(argv[i], &sb)) {
+    if (i < argc - 1 && !is_reg_file(argv[i], &sb)) {
       valid_sources[i] = 0;
-      fprintf(stderr,
-              "ERROR: %s (%s) is not a file or directory; skipping...\n\n",
+      fprintf(stderr, "ERROR: %s (%s) is not a regular file; skipping...\n\n",
               argv[i], arg_types[i]);
       continue;
     }
@@ -84,10 +91,13 @@ int main(int argc, char *argv[]) {
       }
     }
     // Print file/directory details
-    printf("%s%s (%s)\n  Reg file: %s\n  Directory: %s\n  INode num: %d\n\n",
+    printf("%s%s (%s)\n  Reg file: %s\n  Directory: %s\n  Block device: %s\n  "
+           "INode num: %d\n\n",
            i == argc - 1 ? "to " : "", argv[i], arg_types[i],
            is_reg_file(argv[i], &sb) ? "yes" : "no",
-           is_dir(argv[i], &sb) ? "yes" : "no", get_inode_num(argv[i], &sb));
+           is_dir(argv[i], &sb) ? "yes" : "no",
+           is_blk_dev(argv[i], &sb) ? "yes" : "no",
+           get_inode_num(argv[i], &sb));
     fflush(stdout);
   }
 
@@ -105,9 +115,10 @@ int main(int argc, char *argv[]) {
                     "Exiting without copying or moving.\n");
     return EXIT_FAILURE;
   }
+
+  // Begin copy/move logic
+
   if (called_as_copy(argv[0])) {
-    // If argc < 4, then after the error-checks above, the destination will
-    // either be a file or not exist
     if (argc < 4) {
       copy_file(argv[1], argv[2]);
     } else {

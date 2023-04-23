@@ -29,6 +29,14 @@ int is_dir(char *path, struct stat *sb) {
   return 0;
 }
 
+int is_blk_dev(char *path, struct stat *sb) {
+  if (file_exists(path)) {
+    stat(path, sb);
+    return S_ISBLK(sb->st_mode);
+  }
+  return 0;
+}
+
 int get_inode_num(char *path, struct stat *sb) {
   if (file_exists(path)) {
     stat(path, sb);
@@ -91,13 +99,13 @@ void copy_file(char *src, char *dst) {
 
 void move_file(char *src, char *dst) {
   if (link(src, dst) < 0) {
-    fprintf(stderr, "Can't link to destination %s. Attempting copy...\n", dst);
     perror("link");
+    fprintf(stderr, "Can't link to destination %s. Attempting copy...\n", dst);
     copy_file(src, dst);
   }
   if (unlink(src) < 0) {
     perror("unlink");
     exit(EXIT_FAILURE);
   }
-  printf("Successfully moved.\n");
+  printf("Successfully moved %s to %s.\n", src, dst);
 }
