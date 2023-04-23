@@ -44,15 +44,16 @@ void copy_file(char *src, char *dst) {
   // Check if destination exists. If so, prompt user for overwrite confirmation
 
   if (file_exists(dst)) {
-    char yn;
-    printf("Destination exists. Overwrite? (y/n): ");
+    char yn[256];
+    printf("Destination %s exists. Overwrite? (y/n): ", dst);
     fflush(stdout);
-    while (yn != 'y') {
-      scanf(" %c", &yn);
-      if (yn == 'n') {
+    while (yn[0] != 'y') {
+      // Use fgets to avoid leftover newlines in the input buffer
+      fgets(yn, 256, stdin);
+      if (yn[0] == 'n') {
         fprintf(stderr, "Exiting without copying or moving.\n");
         exit(EXIT_FAILURE);
-      } else if (yn != 'y') {
+      } else if (yn[0] != 'y') {
         printf("Please enter 'y' or 'n': ");
         fflush(stdout);
       }
@@ -68,7 +69,7 @@ void copy_file(char *src, char *dst) {
     exit(EXIT_FAILURE);
   }
 
-  // Copy the file
+  // Copy the source to the destination BUFSIZ bytes at a time
 
   while ((bytes_read = read(src_fd, buf, BUFSIZ)) > 0)
     bytes_written = write(dst_fd, buf, bytes_read);
@@ -85,7 +86,7 @@ void copy_file(char *src, char *dst) {
   }
   close(src_fd);
   close(dst_fd);
-  printf("Successfully copied.\n");
+  printf("Successfully copied %s to %s.\n", src, dst);
 }
 
 void move_file(char *src, char *dst) {

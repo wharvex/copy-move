@@ -1,4 +1,5 @@
 #include "p3_lib.h"
+#include <libgen.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -41,7 +42,8 @@ int main(int argc, char *argv[]) {
   }
   // Make valid_sources int array to remember which sources exist and are
   // files/directories
-  int valid_sources[argc - 1];
+  int valid_sources[argc];
+  valid_sources[argc - 1] = 0;
   for (int i = 1; i < argc - 1; i++) {
     valid_sources[i] = 1;
   }
@@ -108,10 +110,30 @@ int main(int argc, char *argv[]) {
     // either be a file or not exist
     if (argc < 4) {
       copy_file(argv[1], argv[2]);
+    } else {
+      char *file_name;
+      char path_name[256];
+      for (int i = 1; i < argc; i++) {
+        if (valid_sources[i]) {
+          file_name = basename(argv[i]);
+          sprintf(path_name, "%s/%s", argv[argc - 1], file_name);
+          copy_file(argv[i], path_name);
+        }
+      }
     }
   } else {
     if (argc < 4) {
       move_file(argv[1], argv[2]);
+    } else {
+      char *file_name;
+      char path_name[256];
+      for (int i = 1; i < argc; i++) {
+        if (valid_sources[i]) {
+          file_name = basename(argv[i]);
+          sprintf(path_name, "%s/%s", argv[argc - 1], file_name);
+          move_file(argv[i], path_name);
+        }
+      }
     }
   }
   return EXIT_SUCCESS;
