@@ -1,4 +1,4 @@
-#copy_move
+# copy_move
 This is a verbose clone of the GNU coreutils cp and mv.
 It copies or moves sources to a destination.
 Download and compile with (needs gcc):
