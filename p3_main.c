@@ -120,7 +120,11 @@ int main(int argc, char *argv[]) {
 
   if (called_as_copy(argv[0])) {
     if (argc < 4) {
-      copy_file(argv[1], argv[2]);
+      char dest_path[256];
+      if (is_dir(argv[2], &sb)) {
+        sprintf(dest_path, "%s/%s", argv[2], basename(argv[1]));
+      }
+      copy_file(argv[1], dest_path);
     } else {
       char *file_name;
       char path_name[256];
@@ -134,7 +138,11 @@ int main(int argc, char *argv[]) {
     }
   } else {
     if (argc < 4) {
-      move_file(argv[1], argv[2]);
+      char dest_path[256];
+      if (is_dir(argv[2], &sb)) {
+        sprintf(dest_path, "%s/%s", argv[2], basename(argv[1]));
+      }
+      move_file(argv[1], dest_path);
     } else {
       char *file_name;
       char path_name[256];

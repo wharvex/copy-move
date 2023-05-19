@@ -47,6 +47,8 @@ int get_inode_num(char *path, struct stat *sb) {
 
 void copy_file(char *src, char *dst) {
   char buf[BUFSIZ];
+  // size_t is used to express the size of an object in bytes. Using ssize_t
+  // here to allow for -1 for errors
   ssize_t bytes_read, bytes_written;
 
   // Check if destination exists. If so, prompt user for overwrite confirmation
@@ -94,7 +96,7 @@ void copy_file(char *src, char *dst) {
   }
   close(src_fd);
   close(dst_fd);
-  printf("Successfully copied %s to %s.\n", src, dst);
+  printf("Successfully copied %s to %s\n", src, dst);
 }
 
 void move_file(char *src, char *dst) {
@@ -107,5 +109,5 @@ void move_file(char *src, char *dst) {
     perror("unlink");
     exit(EXIT_FAILURE);
   }
-  printf("Successfully moved %s to %s.\n", src, dst);
+  printf("Successfully moved %s to %s\n", src, dst);
 }
