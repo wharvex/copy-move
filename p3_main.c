@@ -1,8 +1,4 @@
 /**
- * ICSI333. System Fundamentals, Spring 2023, TA: Kazi Kibria
- * Timothy Gudlewski
- * 000761668
- *
  * This program moves or copies files to a directory or block device.
  * It can be called as "move" or "copy."
  */
